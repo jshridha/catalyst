@@ -47,6 +47,7 @@ class AlgorithmSimulator(object):
         # Param Setup
         # ==============
         self.sim_params = sim_params
+        self.fast_backtest = sim_params.fast_backtest
         self.env = algo.trading_environment
         self.data_portal = data_portal
         self.restrictions = restrictions
@@ -223,10 +224,10 @@ class AlgorithmSimulator(object):
                 if action == BAR:
                     for capital_change_packet in every_bar(dt):
                         yield capital_change_packet
-                elif action == SESSION_START:
+                elif action == SESSION_START and not self.fast_backtest:
                     for capital_change_packet in once_a_day(dt):
                         yield capital_change_packet
-                elif action == SESSION_END:
+                elif action == SESSION_END and not self.fast_backtest:
                     # End of the session.
                     if emission_rate == 'daily':
                         handle_benchmark(normalize_date(dt))
@@ -237,7 +238,7 @@ class AlgorithmSimulator(object):
                     self.simulation_dt = dt
                     algo.on_dt_changed(dt)
                     algo.before_trading_start(self.current_data)
-                elif action == MINUTE_END:
+                elif action == MINUTE_END and not self.fast_backtest:
                     handle_benchmark(dt)
                     minute_msg = \
                         self._get_minute_message(dt, algo, algo.perf_tracker)

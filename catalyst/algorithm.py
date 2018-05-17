@@ -293,6 +293,8 @@ class TradingAlgorithm(object):
             get_calendar('OPEN')
         )
 
+        self.fast_backtest = kwargs.pop('fast_backtest', True)
+
         self.sim_params = kwargs.pop('sim_params', None)
         if self.sim_params is None:
             self.sim_params = create_simulation_parameters(
@@ -300,6 +302,7 @@ class TradingAlgorithm(object):
                 end=kwargs.pop('end', None),
                 trading_calendar=self.trading_calendar,
             )
+        self.sim_params.fast_backtest = self.fast_backtest
 
         self.perf_tracker = None
         # Pull in the environment's new AssetFinder for quick reference

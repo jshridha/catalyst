@@ -81,6 +81,7 @@ class PerformanceTracker(object):
     """
     def __init__(self, sim_params, trading_calendar, env):
         self.sim_params = sim_params
+        self.fast_backtest = sim_params.fast_backtest
         self.trading_calendar = trading_calendar
         self.asset_finder = env.asset_finder
         self.treasury_curves = env.treasury_curves
@@ -453,21 +454,24 @@ class PerformanceTracker(object):
             log.info("last close: {d}".format(
                 d=self.sim_params.last_close))
 
-        bms = pd.Series(
-            index=self.cumulative_risk_metrics.cont_index,
-            data=self.cumulative_risk_metrics.benchmark_returns_cont)
-        ars = pd.Series(
-            index=self.cumulative_risk_metrics.cont_index,
-            data=self.cumulative_risk_metrics.algorithm_returns_cont)
-        acl = self.cumulative_risk_metrics.algorithm_cumulative_leverages
+        if not self.fast_backtest:
+            bms = pd.Series(
+                index=self.cumulative_risk_metrics.cont_index,
+                data=self.cumulative_risk_metrics.benchmark_returns_cont)
+            ars = pd.Series(
+                index=self.cumulative_risk_metrics.cont_index,
+                data=self.cumulative_risk_metrics.algorithm_returns_cont)
+            acl = self.cumulative_risk_metrics.algorithm_cumulative_leverages
 
-        risk_report = risk.RiskReport(
-            ars,
-            self.sim_params,
-            benchmark_returns=bms,
-            algorithm_leverages=acl,
-            trading_calendar=self.trading_calendar,
-            treasury_curves=self.treasury_curves,
-        )
+            risk_report = risk.RiskReport(
+                ars,
+                self.sim_params,
+                benchmark_returns=bms,
+                algorithm_leverages=acl,
+                trading_calendar=self.trading_calendar,
+                treasury_curves=self.treasury_curves,
+            )
 
-        return risk_report.to_dict()
+            return risk_report.to_dict()
+        else:
+            return []
